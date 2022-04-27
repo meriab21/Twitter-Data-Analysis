@@ -35,64 +35,83 @@ class TweetDfExtractor:
 
     # an example function
     def find_statuses_count(self)->list:
-        statuses_count 
+            statuses_count = [x['users']['statuses_count']
+                                              for x in self.tweets_list]
+            return statuses_count
         
-    def find_full_text(self)->list:
-        text = 
-       
+    def find_full_text(self) -> list:
+        text = []
+        for x in self.tweets_list:
+            try:
+                text.append(x['retweeted_status']
+                            ['extended_tweet']['full_text'])
+            except KeyError:
+                text.append(x['text'])
+        return text
     
     def find_sentiments(self, text)->list:
-        
-        return polarity, self.subjectivity
+        try:
+            polarity = self.tweets_list['users']['polarity']
+        except TypeError:
+            polarity = ''
+        return polarity
+    
+    def find_sentiments(self, text) -> list:
+        polarity = [TextBlob(x).polarity for x in text]
+        subjectivity = [TextBlob(x).subjectivity for x in text]
+        return (polarity, subjectivity)
 
-    def find_created_time(self)->list:
-       
+    def find_created_time(self) -> list:
+        created_at = [x['created_at'] for x in self.tweets_list]
         return created_at
 
-    def find_source(self)->list:
-        source = 
-
+    def find_source(self) -> list:
+        source = [x['source'] for x in self.tweets_list]
         return source
 
-    def find_screen_name(self)->list:
-        screen_name = 
+    def find_screen_name(self) -> list:
+        screen_name = [x['user']['screen_name'] for x in self.tweets_list]
+        return screen_name
 
-    def find_followers_count(self)->list:
-        followers_count = 
+    def find_followers_count(self) -> list:
+        followers_count = [x['user']['followers_count']
+                           for x in self.tweets_list]
+        return followers_count
+    
+    def find_friends_count(self) -> list:
+            friends_count = [x['user']['friends_count']for x in self.tweets_list]
+            return friends_count
 
-    def find_friends_count(self)->list:
-        friends_count = 
-
-    def is_sensitive(self)->list:
-        try:
-            is_sensitive = [x['possibly_sensitive'] for x in self.tweets_list]
-        except KeyError:
-            is_sensitive = None
-
+    def is_sensitive(self) -> list:
+        is_sensitive = [x.get('retweeted_status', {}).get(
+            'possibly_sensitive', None) for x in self.tweets_list]
         return is_sensitive
 
-    def find_favourite_count(self)->list:
-        
+    def find_favourite_count(self) -> list:
+        favorite_count = [x.get('retweeted_status', {}).get(
+            'favorite_count', 0) for x in self.tweets_list]
+        return favorite_count
     
-    def find_retweet_count(self)->list:
-        retweet_count = 
+    def find_retweet_count(self) -> list:
+        retweet_count = [x.get('retweeted_status', {}).get(
+            'retweet_count', 0) for x in self.tweets_list]
+        return retweet_count  
 
-    def find_hashtags(self)->list:
-        hashtags =
-
-    def find_mentions(self)->list:
-        mentions = 
-
-
-    def find_location(self)->list:
-        try:
-            location = self.tweets_list['user']['location']
-        except TypeError:
-            location = ''
-        
+    def find_hashtags(self) -> list:
+        hashtags = [x['entities']['hashtags'] for x in self.tweets_list]
+        return hashtags
+    
+    def find_mentions(self) -> list:
+        mentions = [x['entities']['user_mentions'] for x in self.tweets_list]
+        return mentions
+    
+    def find_location(self) -> list:
+        location = [x.get('user', {}).get('location', None)
+                    for x in self.tweets_list]
         return location
-
-    
+    def find_lang(self) -> list:
+        lang = [x['lang'] for x in self.tweets_list]
+        return lang
         
         
     def get_tweet_df(self, save=False)->pd.DataFrame:
@@ -129,10 +148,9 @@ if __name__ == "__main__":
     # required column to be generated you should be creative and add more features
     columns = ['created_at', 'source', 'original_text','clean_text', 'sentiment','polarity','subjectivity', 'lang', 'favorite_count', 'retweet_count', 
     'original_author', 'screen_count', 'followers_count','friends_count','possibly_sensitive', 'hashtags', 'user_mentions', 'place', 'place_coord_boundaries']
-    _, tweet_list = read_json("../covid19.json")
-    tweet = TweetDfExtractor(tweet_list)
+    __,tweets_list = read_json(r"C:\Users\meron\Desktop\Week0\Twitter-Data-Analysis\data\Economic_Twitter_Data.json")
+    tweet = TweetDfExtractor(tweets_list)
     tweet_df = tweet.get_tweet_df() 
-
+    
     # use all defined functions to generate a dataframe with the specified columns above
 
-    
